@@ -1,7 +1,7 @@
 # zthreads
 #for python3 threadpool and multi-process pol
 
-测试代码样例：
+测试代码样例：（仅供参考）
 
 # -*- coding:utf-8 -*-
 #Author: allisnone
