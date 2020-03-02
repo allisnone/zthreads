@@ -273,7 +273,7 @@ class Hashfile:
         :param block_size: read file by block, to avoid read all to memory
         :param limit: file size limit, by default: 1024M
         """
-        print('time20=',time.time(),file)
+        #print('time20=',time.time(),file)
         file_size = os.stat(file).st_size/1024/1024
         if block_size==None:
             block_size = self.block_size
@@ -290,15 +290,15 @@ class Hashfile:
                     break
                 hash_obj.update(data)
             hash = hash_obj.hexdigest()
-            print('file_{}_md5={}'.format(file,hash))
+            #print('file_{}_md5={}'.format(file,hash))
             f.close()
-            print('time21=',time.time())
+            #print('time21=',time.time())
             return hash
         return ''
     
     def is_same_file(self,file):
         """
-        判断是否是相同的文件, 基于文件属性
+        判断是否是相同的文件, 基于文件属性, 更高效
         :param file: str, 文件名
         """
         if not os.path.isfile(file):
@@ -308,7 +308,7 @@ class Hashfile:
     
     def is_same_file_content(self,file,block_size=None,limit=None):
         """
-        判断是否是相同的文件，基于文件内容
+        判断是否是相同的文件，基于文件内容；大文件较耗时，4G大约需要10秒
         :param file: str, 文件名
         """
         if not os.path.isfile(file):
