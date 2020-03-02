@@ -5,12 +5,16 @@
 一个基于thread和queue的线程池，以任务为队列元素，动态创建线程，重复利用线程，
 通过close和terminate方法关闭线程池。
 """
-import queue
+#import queue
 import threading
 import contextlib
 import multiprocessing
-import time
+import sys,time
 
+if sys.version_info.major==3:
+    from queue import Queue as Queue 
+else:
+    from Queue import Queue as Queue
  
 # 创建空对象,用于停止线程
 StopEvent = object()
@@ -53,10 +57,10 @@ class Threadpools:
         """
         # 如果提供了最大任务数的参数，则将队列的最大元素个数设置为这个值。
         if max_task_num:
-            self.q = queue.Queue(max_task_num)
+            self.q = Queue(max_task_num)
         # 默认队列可接受无限多个的任务
         else:
-            self.q = queue.Queue()
+            self.q = Queue()
         # 设置线程池最多可实例化的线程数
         self.max_num = max_num
         # 任务取消标识
