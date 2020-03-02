@@ -5,6 +5,7 @@ import os
 
 ZTHREADS_CYTHON = os.getenv("ZTHREADS_CYTHON", None)
 
+
 if ZTHREADS_CYTHON:
     from Cython.Build import cythonize
     cythonkw = {
