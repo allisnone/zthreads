@@ -5,6 +5,7 @@ import random
 import os,sys,time
 import shutil
 import hashlib
+import paramiko
 
 def write2csv(data,file='result.csv',encoding='utf-8',logger=None,clear=False):
     """
@@ -381,3 +382,167 @@ class Hashfile:
         if limit==None:
             limit = self.limit
         return self.hash==self.get_file_hash(file,block_size,limit)  
+    
+    
+#file transfer
+#免密登录：ssh-copy-id root@172.17.33.23
+class SftpClient:
+    #sftp 上传或者下载文件
+    def __init__(self,ip,port=22,username='skygardts',password='123456',private_key_file='',keepalive=False):
+        self.transport = None
+        self.sftp = None
+        self.keepalive = keepalive
+        self.set_sftp_connection(ip,port,username=username,password=password,private_key_file=private_key_file)
+        
+    def set_sftp_connection(self,ip,port=22,username='username',password='123456',private_key_file=''):
+        #初始化sftp的连接
+        self.transport = paramiko.Transport((ip, port))
+        if private_key_file:
+            self.transport.connect(username=username, pkey=private_key)
+        else:
+            self.transport.connect(username=username, password=password)
+        self.sftp = paramiko.SFTPClient.from_transport(self.transport)
+        return
+        
+    def _put(self,source,dest):
+        # sftp 上传文件
+        return self.sftp.put(source, dest)
+    
+    def put(self,source,dest):
+        self._put(source, dest)
+        if not self.keepalive:
+            self.transport.close()
+        return
+    
+    def _get(self,source,dest):
+        #sftp 下载文件
+        return self.sftp.get(source, dest)
+    
+    def get(self,source,dest):
+        self._get(source, dest)
+        if not self.keepalive:
+            self.transport.close()
+        return 
+        
+    def close(self):
+        return self.transport.close()
+
+
+class Sftpclient:
+    #初始化连接创建Transport通道
+    #优先使用private rsakey登录， 需要提前做免密登录设置：ssh-copy-id root@172.17.33.23
+    def __init__(self,host='172.17.33.23',port=22,username='root',password='',private_key_file='',timeout=10,logger=None,keepalive=False):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.keepalive = keepalive  #if TRue上传或者下载完时，马上关闭连接
+        self.logger = logger
+        self.private_key = None  #RSAKey
+        #private_key=paramiko.RSAKey.from_private_key_file('/root/.ssh/id_rsa')
+        #ssh=paramiko.SSHClient()
+        #ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        #ssh.connect(hostname="192.168.1.102",port=22,username="root",pkey=private_key)
+        self.__transport = paramiko.Transport((self.host,self.port))
+        if private_key_file: #Login by private_key_file, like /root/.ssh/id_rsa
+            #private_key_file = '/root/.ssh/id_rsa'
+            self.set_rpivate_rsakey(private_key_file)
+            if self.private_key:
+                try:
+                    self.__transport.connect(username=self.username,pkey=self.private_key)#,timeout=timeout)
+                except Exception as e:
+                    if self.logger==None:
+                        print('Failed to login by private rsakey, exception: {0} for host: {1}@{2}:{3}!; try to login by password...'.format(e,self.username,self.host,self.port))
+                    else:
+                        self.logger.info('Failed to login by private rsakey, exception: {0} for host: {1}@{2}:{3}!; try to login by password...'.format(e,self.username,self.host,self.port))
+                    self.ssh_login_by_password()
+        else: ##Login by password
+            self.ssh_login_by_password()
+        self.sftp = paramiko.SFTPClient.from_transport(self.__transport)
+    
+    def set_rpivate_rsakey(self,private_key_file):
+        if os.path.exists(private_key_file) and os.path.isfile(private_key_file):
+            self.private_key = paramiko.RSAKey.from_private_key_file(private_key_file)
+        else:
+            if self.logger==None:
+                print('Invalid private_key_file: {0} for host: {1}@{2}:{3}!'.format(private_key_file,self.username,self.host,self.port))
+            else:
+                self.logger.error('Invalid private_key_file: {0} for host: {1}@{2}:{3}!'.format(private_key_file,self.username,self.host,self.port))
+    
+    def ssh_login_by_password(self):
+        if self.password:
+            self.__transport.connect(username=self.username,password=self.password)#,timeout=timeout)
+        else:
+            if self.logger==None:
+                print('Both password and private_key_file are empty for host: {1}@{2}:{3}!'.format(self.username,self.host,self.port))
+            else:
+                self.logger.error('Both password and private_key_file are empty for host: {1}@{2}:{3}!'.format(self.username,self.host,self.port))
+        return
+    
+    #关闭通道
+    def close(self):
+        self.sftp.close()
+        self.__transport.close()
+    
+    #上传文件到远程主机
+    def upload(self,local_path,remote_path):
+        self.sftp.put(local_path,remote_path)
+        if self.keepalive:
+            pass
+        else:
+            self.close()
+        if self.logger==None:
+            pass
+        else:
+            self.logger.info('Uploaded from localhost:{0} to {1}:{2}'.format(local_path,self.host,remote_path))
+        return True
+    
+    #从远程主机下载文件到本地
+    def download(self,local_path,remote_path):
+        self.sftp.get(remote_path,local_path)
+        if self.keepalive:
+            pass
+        else:
+            self.close()
+        if self.logger==None:
+            pass
+        else:
+            self.logger.info('Downloaded to localhost:{0} from {1}:{2}'.format(local_path,self.host,remote_path))
+        return True
+    
+    #在远程主机上创建目录
+    def mkdir(self,target_path,mode='0777'):
+        self.sftp.mkdir(target_path,mode)
+    
+    #删除远程主机上的目录
+    def rmdir(self,target_path):
+        self.sftp.rmdir(target_path)
+    
+    #查看目录下文件以及子目录（如果需要更加细粒度的文件信息建议使用listdir_attr）
+    def listdir(self,target_path):
+        return self.sftp.listdir(target_path)
+    
+    #删除文件
+    def remove(self,target_path):
+        self.sftp.remove(target_path)
+    
+    #查看目录下文件以及子目录的详细信息（包含内容和参考os.stat返回一个FSTPAttributes对象，对象的具体属性请用__dict__查看）
+    def listdirattr(self,target_path):
+        try:
+            list = self.sftp.listdir_attr(target_path)
+        except BaseException as e:
+            print(e)
+        return list
+    
+    #获取文件详情
+    def stat(self,remote_path):
+        return self.sftp.stat(remote_path)
+    
+    #SSHClient输入命令远程操作主机
+    def cmd(self,command):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        ssh._transport = self.__transport
+        stdin, stdout, stderr = ssh.exec_command(command)
+        result = stdout.read().decode().strip()
+        return result

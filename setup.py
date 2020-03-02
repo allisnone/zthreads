@@ -34,9 +34,9 @@ setup(
     url='https://github.com/allisnone/zthreads',
     packages=find_packages(),
     install_requires=[
-            #'queue',
-            #'threading',
-            #'contextlib',
+            'paramiko',
+            #'shutil',
+            #'hashlib',
     ],
     entry_points={
           'console_scripts': [
