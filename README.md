@@ -3,10 +3,8 @@
 
 测试代码样例：（仅 供参）
 
-# -*- coding:utf-8 -*-
-#Author: allisnone
-import time
-import random
+下载源码，安装包
+python setup.py install
 
 """
 一个基于thread和queue的线程池，以任务为队列元素，动态创建线程，重复利用线程，
