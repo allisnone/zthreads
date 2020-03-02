@@ -137,5 +137,6 @@ def removeFileInFirstDir(targetDir):
         if os.path.isfile(targetFile): 
             os.remove(targetFile)
 
+
 def moveFileto(sourceDir,  targetDir):      
     shutil.copy(sourceDir,  targetDir)
