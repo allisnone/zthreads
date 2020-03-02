@@ -1,0 +1,279 @@
+ python中os模块简介
+
+一、什么是os模块
+
+os模块提供了多数操作系统的功能接口函数。当os模块被导入后，它会自适应于不同的操作系统平台，根据不同的平台进行相应的操作，在python编程时，经常和文件、目录打交道，所以离不了os模块。python编程时，经常和文件、目录打交道，这是就离不了os模块，本节内容将对os模块提供的函数进行详细的解读
+
+二、常用的os模块命令
+
+1. os.name——name顾名思义就是'名字'，这里的名字是指操作系统的名字，主要作用是判断目前正在使用的平台，并给出操作系统的名字，如Windows 返回 'nt'; Linux 返回'posix'。注意该命令不带括号。
+
+2. os.getcwd()——全称应该是'get current work directory'，获取当前工作的目录，如：返回结果为：'C:\\Program Files\\Python36'。注意该命令带括号，除了第一个命令不带括号之外，以下命令基本都带括号。
+
+3. os.listdir(path)——列出path目录下所有的文件和目录名。Path参数可以省略。例： 
+
+ 以列表的形式全部列举出来，其中没有区分目录和文件。
+
+4. os.remove(path)——删除path指定的文件，该参数不能省略。
+
+5. os.rmdir(path)——删除path指定的目录，该参数不能省略。
+
+6. os.mkdir(path)——创建path指定的目录，该参数不能省略。
+
+　　注意：这样只能建立一层，要想递归建立可用：os.makedirs()
+
+7. os.path.isfile(path)——判断指定对象是否为文件。是返回True,否则False
+
+8. os.path.isdir(path)——判断指定对象是否为目录。是True,否则False。例
+
+ 
+
+ 9. os.path.exists(path)——检验指定的对象是否存在。是True,否则False.例：
+
+     
+
+10. os.path.split(path)——返回路径的目录和文件名，即将目录和文件名分开，而不是一个整体。此处只是把前后两部分分开而已。就是找最后一个'/'。
+
+11. os.system(cmd)——执行shell命令。返回值是脚本的退出状态码，0代表成功，1代表不成功，例：
+
+     
+
+12. os.chdir(path)——'change dir'改变目录到指定目录
+
+13. os.path.getsize()——获得文件的大小，如果为目录，返回0
+
+14. os.path.abspath()——获得绝对路径。
+
+15. os.path.join(path, name)—连接目录和文件名，与os.path.split(path)相对。
+
+16.os.path.basename(path)——返回文件名
+
+17. os.path.dirname(path)——返回文件路径
+
+18. os.path.getatime('setup.py') 
+1583120670.2264574
+
+19. os.path.getctime('setup.py')
+1583117999.8309743
+
+20. os.path.getmtime('setup.py')
+1583118773.5916307
+#表示从1970年1月1日已经经过多少秒
+
+time.ctime(1403956680.03)
+time.ctime(os.path.getctime('setup.py'))
+
+其他补充：
+os.path.abspath(path) #返回绝对路径
+
+os.path.basename(path) #返回文件名
+
+os.path.commonprefix(list) #返回list(多个路径)中，所有path共有的最长的路径。
+
+os.path.dirname(path) #返回文件路径
+
+os.path.exists(path)  #路径存在则返回True,路径损坏返回False
+
+os.path.lexists  #路径存在则返回True,路径损坏也返回True
+
+os.path.expanduser(path)  #把path中包含的"~"和"~user"转换成用户目录
+
+os.path.expandvars(path)  #根据环境变量的值替换path中包含的”$name”和”${name}”
+
+os.path.getatime(path)  #返回最后一次进入此path的时间。
+
+os.path.getmtime(path)  #返回在此path下最后一次修改的时间。
+
+os.path.getctime(path)  #返回path的大小
+
+os.path.getsize(path)  #返回文件大小，如果文件不存在就返回错误
+
+os.path.isabs(path)  #判断是否为绝对路径
+
+os.path.isfile(path)  #判断路径是否为文件
+
+os.path.isdir(path)  #判断路径是否为目录
+
+os.path.islink(path)  #判断路径是否为链接
+
+os.path.ismount(path)  #判断路径是否为挂载点（）
+
+os.path.join(path1[, path2[, ...]])  #把目录和文件名合成一个路径
+
+os.path.normcase(path)  #转换path的大小写和斜杠
+
+os.path.normpath(path)  #规范path字符串形式
+
+os.path.realpath(path)  #返回path的真实路径
+
+os.path.relpath(path[, start])  #从start开始计算相对路径
+
+os.path.samefile(path1, path2)  #判断目录或文件是否相同
+
+os.path.sameopenfile(fp1, fp2)  #判断fp1和fp2是否指向同一文件
+
+os.path.samestat(stat1, stat2)  #判断stat tuple stat1和stat2是否指向同一个文件
+
+os.path.split(path)  #把路径分割成dirname和basename，返回一个元组
+
+os.path.splitdrive(path)   #一般用在windows下，返回驱动器名和路径组成的元组
+
+os.path.splitext(path)  #分割路径，返回路径名和文件扩展名的元组
+
+os.path.splitunc(path)  #把路径分割为加载点与文件
+
+os.path.walk(path, visit, arg)  #遍历path，进入每个目录都调用visit函数，visit函数必须有
+
+3个参数(arg, dirname, names)，dirname表示当前目录的目录名，names代表当前目录下的所有
+
+文件名，args则为walk的第三个参数
+
+os.path.supports_unicode_filenames  #设置是否支持unicode路径名
+
+
+---------------------------------------------------------------------------
+ python之shutil模块
+
+高级的 文件、文件夹、压缩包 处理模块
+
+shutil.copyfileobj(fsrc, fdst[, length])
+将文件内容拷贝到另一个文件中
+
+1 import shutil
+2  
+3 shutil.copyfileobj(open('old.xml','r'), open('new.xml', 'w'))
+
+ 
+
+shutil.copyfile(src, dst)
+拷贝文件
+
+1 shutil.copyfile('f1.log', 'f2.log') #目标文件无需存在
+
+ 
+
+shutil.copymode(src, dst)
+仅拷贝权限。内容、组、用户均不变
+
+1 shutil.copymode('f1.log', 'f2.log') #目标文件必须存在
+
+ 
+
+shutil.copystat(src, dst)
+仅拷贝状态的信息，包括：mode bits, atime, mtime, flags
+
+1 shutil.copystat('f1.log', 'f2.log') #目标文件必须存在
+
+ 
+
+shutil.copy(src, dst)
+拷贝文件和权限
+
+1 import shutil
+2  
+3 shutil.copy('f1.log', 'f2.log')
+
+ 
+
+shutil.copy2(src, dst)
+拷贝文件和状态信息
+
+1 import shutil
+2  
+3 shutil.copy2('f1.log', 'f2.log')
+
+ 
+
+shutil.ignore_patterns(*patterns)
+shutil.copytree(src, dst, symlinks=False, ignore=None)
+递归的去拷贝文件夹
+
+1 import shutil
+2  
+3 shutil.copytree('folder1', 'folder2', ignore=shutil.ignore_patterns('*.pyc', 'tmp*')) #目标目录不能存在，注意对folder2目录父级目录要有可写权限，ignore的意思是排除 
+
+ 
+
+shutil.rmtree(path[, ignore_errors[, onerror]])
+递归的去删除文件
+
+1 import shutil
+2  
+3 shutil.rmtree('folder1')
+
+ 
+
+shutil.move(src, dst)
+递归的去移动文件，它类似mv命令，其实就是重命名。
+
+1 import shutil
+2  
+3 shutil.move('folder1', 'folder3')
+
+ 
+
+shutil.make_archive(base_name, format,...)
+
+创建压缩包并返回文件路径，例如：zip、tar
+
+创建压缩包并返回文件路径，例如：zip、tar
+
+        base_name： 压缩包的文件名，也可以是压缩包的路径。只是文件名时，则保存至当前目录，否则保存至指定路径，
+        如 data_bak                       =>保存至当前路径
+        如：/tmp/data_bak =>保存至/tmp/
+        format： 压缩包种类，“zip”, “tar”, “bztar”，“gztar”
+        root_dir： 要压缩的文件夹路径（默认当前目录）
+        owner： 用户，默认当前用户
+        group： 组，默认当前组
+        logger： 用于记录日志，通常是logging.Logger对象
+        复制代码
+
+        #将 /data 下的文件打包放置当前程序目录
+        import shutil
+        ret = shutil.make_archive("data_bak", 'gztar', root_dir='/data')
+          
+          
+        #将 /data下的文件打包放置 /tmp/目录
+        import shutil
+        ret = shutil.make_archive("/tmp/data_bak", 'gztar', root_dir='/data')
+
+        复制代码
+
+        shutil 对压缩包的处理是调用 ZipFile 和 TarFile 两个模块来进行的，详细：
+        复制代码
+
+        zipfile压缩解压缩
+
+
+        import zipfile
+
+        # 压缩
+        z = zipfile.ZipFile('laxi.zip', 'w')
+        z.write('a.log')
+        z.write('data.data')
+        z.close()
+
+        # 解压
+        z = zipfile.ZipFile('laxi.zip', 'r')
+        z.extractall(path='.')
+        z.close()
+
+
+        复制代码
+        复制代码
+
+        import tarfile
+
+        # 压缩
+        >>> t=tarfile.open('/tmp/egon.tar','w')
+        >>> t.add('/test1/a.py',arcname='a.bak')
+        >>> t.add('/test1/b.py',arcname='b.bak')
+        >>> t.close()
+
+
+        # 解压
+        >>> t=tarfile.open('/tmp/egon.tar','r')
+        >>> t.extractall('/egon')
+        >>> t.close()
+
+        复制代码
