@@ -11,6 +11,7 @@ if ZTHREADS_CYTHON:
         "ext_modules": cythonize(
             ["zthreads/threadpools/threadpools.py",
              "zthreads/comm/fileoperation.py",
+             "zthreads/comm/logger.py",
              ])
     }
 else:
