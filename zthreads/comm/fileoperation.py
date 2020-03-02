@@ -110,6 +110,67 @@ def read_csv_list(file='./raw/users.csv',ignore_header=True,encoding='utf-8',log
     return data,header
 
 
+
+
+# file size related
+def getdirsize(dir):
+    """
+    获取目录占用空间大小, 单位字节
+    :param top_dir: str, given DIR
+    :return  int 
+    """
+    size = 0
+    for root, dirs, files in os.walk(dir):
+        size += sum([os.stat(join(root, name)).st_size for name in files])
+    return size
+
+def get_int_size(size='10M'):
+    """
+    存储大单位字节数转化字节，返回字节数
+    :param size: str
+    :return  int 
+    """
+    unit = 'KMGTPEZY'#['K','M','G','T','P','E','Z','Y']
+    if isinstance(size, int):
+        return size
+    elif isinstance(size, float):
+        return int(size)
+    elif isinstance(size, str):
+        if size.isdigit():
+            return int(size)
+        elif is_number(size[:-1]):#size[:-1].isdigit():
+            unit_index = unit.find(size[-1].upper())  
+            if unit_index>=0:
+                return int(float(size[:-1]) * (1024 ** (unit_index + 1 )))
+            else: #1024的八次方意外的字节数
+                return -1
+        else:
+            return -2
+    else:
+        return -3
+
+def get_str_size(size=100):
+    """
+    字节数转化为带单位的字节，比如1234567字节，转化为：1.18M
+    返回str类型
+    :param size: int
+    :return  str 
+    """
+    if size<0:
+        return ''
+    unit = 'KMGTPEZY'#['K','M','G','T','P','E','Z','Y']
+    n = len(unit)
+    while n>=0:
+        if size>1024**n:
+            break
+        n = n -1
+    size_str = '%s'%size
+    if n>=1:
+        size_unit = round(float(size)/(1024**n),2)
+        size_str = '%s%s' % (size_unit,unit[n-1])
+    return size_str
+
+#file operation    
 def remove_dir(dir):
     """
     删除指定目录，可以非空。
@@ -193,8 +254,6 @@ def remove_dir_or_file(top_dir, pathname, type='dir',keyword_only=False,remove_a
     return is_pathname_exist
 
 
-
-    
 def copyFiles(sourceDir,  targetDir): 
     if sourceDir.find(".svn") > 0: 
         return 
@@ -229,7 +288,7 @@ def moveFileto(sourceDir,  targetDir):
     shutil.copy(sourceDir,  targetDir)
 
 
-
+#File property
 class Hashfile:
     """
     获取文件的属性、内容相关hash值，并判断内容是否一样。
@@ -241,6 +300,9 @@ class Hashfile:
         self.block_size = block_size
         self.limit = limit
         self.stat = os.stat(file)  #获取文件属性
+        #os.stat_result(st_mode=33206, st_ino=7318349394957043, st_dev=413549050, 
+        #st_nlink=1, st_uid=0, st_gid=0, st_size=1093, 
+        #st_atime=1583140201, st_mtime=1583118773, st_ctime=1583117999)
         self.hash = self.get_file_hash(file,block_size,limit) #获取文件内容的hash
         
     def set_hash_type(self,type):
