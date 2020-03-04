@@ -427,6 +427,14 @@ class SftpClient:
     def close(self):
         return self.transport.close()
 
+def sftp_callback(transfer_size,total_size):
+    i = 0 
+    print('{0}s:transfer_size={1}, total_size={2}'.format(i,transfer_size,total_size))
+    while transfer_size<total_size:
+        print('{0}s:transfer_size={1}, total_size={2}'.format(i,transfer_size,total_size))
+        time.sleep(1)
+        i = i + 1
+    return 
 
 class Sftpclient:
     #初始化连接创建Transport通道
@@ -485,8 +493,8 @@ class Sftpclient:
         self.__transport.close()
     
     #上传文件到远程主机
-    def upload(self,local_path,remote_path):
-        self.sftp.put(local_path,remote_path)
+    def upload(self,local_path,remote_path,callback=sftp_callback):
+        self.sftp.put(local_path,remote_path,sftp_callback)
         if self.keepalive:
             pass
         else:
@@ -498,8 +506,8 @@ class Sftpclient:
         return True
     
     #从远程主机下载文件到本地
-    def download(self,local_path,remote_path):
-        self.sftp.get(remote_path,local_path)
+    def download(self,local_path,remote_path,callback=sftp_callback):
+        self.sftp.get(remote_path,local_path,sftp_callback)
         if self.keepalive:
             pass
         else:
