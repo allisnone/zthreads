@@ -105,7 +105,9 @@ class Httprequests:
         #}
         self.headers = headers
         self.logger = logger
-        pass
+        self.url = self.encode_url(url)
+        self.set_proxy(proxy_host, prox_port, proxy_username, proxy_password)
+        
         
     def set_proxy(self, proxy_host, prox_port=8080, proxy_username=None, proxy_password=None):
         """
@@ -151,6 +153,50 @@ class Httprequests:
         :return:
         """
         return quote(url, safe=string.printable).replace(' ', '%20')
+    
+    def get(self,url,params=None,headers=None,files=None):
+        '''封装get方法，return响应码和响应内容'''
+        try:
+            r = requests.get(url,params = params,headers = headers,files=files)
+            log1.info("请求的内容：%s" % params)
+            status_code = r.status_code  # 获取返回的状态码
+            log1.info("获取返回的状态码:%d" % status_code)
+            response_json = r.json()  # 响应内容，json类型转化成python数据类型
+            log1.info("响应内容：%s" % response_json)
+            return status_code,response_json    # 返回响应码，响应内容
+        except BaseException as e:
+            log1.error("请求失败！",exc_info=1)
+            return -1,{}
+    
+    def post(self, url, data=None, headers=None,files=None):
+        '''封装post请求，return响应码和响应内容'''
+        try:
+            r = requests.post(url, data=data, headers=headers,files=files)
+            log1.info("请求的内容：%s" % data)
+            status_code = r.status_code  # 获取返回的状态码
+            log1.info("获取返回的状态码:%d" % status_code)
+            response_json = r.json()  # 响应内容，json类型转化成python数据类型
+            log1.info("响应内容：%s" % response_json)
+            return status_code,response_json    # 返回响应码，响应内容
+        except BaseException as e:
+            log1.error("请求失败！",exc_info=1)
+            return -1,{}
+    
+    def post_json(self,url,data=None,headers=None):
+        '''封装post方法，并用json格式传值，return响应码和响应内容'''
+        try:
+            data = json.dumps(data).encode('utf-8')  # python数据类型转化为json数据类型
+            r = requests.post(url, data=data, headers=headers)
+            log1.info("请求的内容：%s" % data)
+            status_code = r.status_code   # 获取返回的状态码
+            log1.info("获取返回的状态码:%d" % status_code)
+            response = r.json()   # 响应内容，json类型转化成python数据类型
+            log1.info("响应内容：%s" % response)
+            return status_code,response    # 返回响应码，响应内容
+        except BaseException as e:
+            log1.error("请求失败！",exc_info=1)
+            return -1,{}
+
 
     def url_request(self, url, block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=(30,60)):
         """
