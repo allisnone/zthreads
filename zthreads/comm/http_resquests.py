@@ -154,47 +154,59 @@ class Httprequests:
         """
         return quote(url, safe=string.printable).replace(' ', '%20')
     
-    def get(self,url,params=None,headers=None,files=None):
-        '''封装get方法，return响应码和响应内容'''
+    def get(self,url=None,params=None,headers=None,files=None):
+        """
+        封装get方法，return响应码和响应内容: 
+        :param url: None or str
+        :param params: dict type
+        :param headers: dict type
+        :param files:
+        :return status_code,json response: int, json
+        """
+        if url==None:
+            url = self.url
         try:
-            r = requests.get(url,params = params,headers = headers,files=files)
-            log1.info("请求的内容：%s" % params)
-            status_code = r.status_code  # 获取返回的状态码
-            log1.info("获取返回的状态码:%d" % status_code)
-            response_json = r.json()  # 响应内容，json类型转化成python数据类型
-            log1.info("响应内容：%s" % response_json)
-            return status_code,response_json    # 返回响应码，响应内容
-        except BaseException as e:
-            log1.error("请求失败！",exc_info=1)
+            r = requests.get(url,params = params,headers = headers,files=files)  #**kwargs
+            return r.status_code,r.json()    # 返回响应码，响应内容
+        except Exception as e:
+            if self.logger: self.logger.error("Request get exception: {0}".format(e))
             return -1,{}
     
-    def post(self, url, data=None, headers=None,files=None):
-        '''封装post请求，return响应码和响应内容'''
+    def post(self, url=None, data=None, headers=None,files=None):
+        """
+        封装post方法，return响应码和响应内容: 
+        :param url: None or str
+        :param data: dict type
+        :param headers: dict type
+        :param files:
+        :return status_code,json response: int, json
+        """
+        if url==None:
+            url = self.url
         try:
-            r = requests.post(url, data=data, headers=headers,files=files)
-            log1.info("请求的内容：%s" % data)
-            status_code = r.status_code  # 获取返回的状态码
-            log1.info("获取返回的状态码:%d" % status_code)
-            response_json = r.json()  # 响应内容，json类型转化成python数据类型
-            log1.info("响应内容：%s" % response_json)
-            return status_code,response_json    # 返回响应码，响应内容
-        except BaseException as e:
-            log1.error("请求失败！",exc_info=1)
+            r = requests.post(url, data=data, headers=headers,files=files) #**kwargs
+            return r.status_code,r.json()    # 返回响应码，响应内容
+        except Exception as e:
+            if self.logger: self.logger.error("Request post exception: {0}".format(e))
             return -1,{}
     
-    def post_json(self,url,data=None,headers=None):
-        '''封装post方法，并用json格式传值，return响应码和响应内容'''
+    def post_json(self,url=None,data=None,headers=None):
+        """
+        封装json post方法，return响应码和响应内容: 
+        :param url: None or str
+        :param data: dict type
+        :param headers: dict type
+        :param files:
+        :return status_code,json response: int, json
+        """
+        if url==None:
+            url = self.url
         try:
             data = json.dumps(data).encode('utf-8')  # python数据类型转化为json数据类型
             r = requests.post(url, data=data, headers=headers)
-            log1.info("请求的内容：%s" % data)
-            status_code = r.status_code   # 获取返回的状态码
-            log1.info("获取返回的状态码:%d" % status_code)
-            response = r.json()   # 响应内容，json类型转化成python数据类型
-            log1.info("响应内容：%s" % response)
-            return status_code,response    # 返回响应码，响应内容
-        except BaseException as e:
-            log1.error("请求失败！",exc_info=1)
+            return r.status_code,r.json()     # 返回响应码，响应内容
+        except Exception as e:
+            if self.logger: self.logger.error("Request post_json exception: {0}".format(e))
             return -1,{}
 
 
