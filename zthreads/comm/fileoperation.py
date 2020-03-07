@@ -111,7 +111,40 @@ def read_csv_list(file='./raw/users.csv',ignore_header=True,encoding='utf-8',log
     return data,header
 
 
-
+def read_text_file(file='./raw/users.txt',encoding='utf-8',spliter=',',column=None,has_header=True,data_only=False):
+    """
+    读取txt文件的结果，返回list数据,每个数据是字典。
+    :param file: str, file name
+    :param encoding: str, encoding type
+    :param spliter: str, the spliter of str
+    :param column: int, if Not None, will return this column only
+    :param has_header: bool
+    :param data_only: bool, if True, header will not include in datas
+    :return: list data with data and header
+    """
+    datas = []
+    with open(file, 'r',encoding=encoding) as f:
+        i = 0
+        for row in f: # way of small memory 
+            temp = row.replace('\n','')
+            if temp:#ignore empty row
+                if column:
+                    data = temp.split(spliter)
+                    if column<len(data) and column>=0:
+                        datas.append(data[column])
+                    else:
+                        print('read_text_file-invalid column={0} for line-{i}'.format(column,i))
+                else:
+                    datas.append(temp.split(spliter))
+    header = []
+    if has_header and datas:
+        if data_only:
+            header = datas.pop(0)
+        else:
+            header = datas[0]
+    #print('datas=',datas)
+    return datas,header
+    
 
 # file size related
 def getdirsize(dir):
