@@ -128,21 +128,25 @@ def read_text_file(file='./raw/users.txt',encoding='utf-8',spliter=',',column=No
         for row in f: # way of small memory 
             temp = row.replace('\n','')
             if temp:#ignore empty row
-                if column:
+                if column==None:
+                    datas.append(temp.split(spliter))
+                else:
                     data = temp.split(spliter)
                     if column<len(data) and column>=0:
                         datas.append(data[column])
                     else:
                         print('read_text_file-invalid column={0} for line-{i}'.format(column,i))
-                else:
-                    datas.append(temp.split(spliter))
+            else:
+                pass
     header = []
     if has_header and datas:
-        if data_only:
-            header = datas.pop(0)
+        if column==None:
+            if data_only:
+                header = datas.pop(0)
+            else:
+                header = datas[0]
         else:
-            header = datas[0]
-    #print('datas=',datas)
+            pass
     return datas,header
     
 

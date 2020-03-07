@@ -10,7 +10,7 @@ import os
 import csv
 import string,sys
 import requests
-from fileoperation import write2csv,write_datas_2csv,read_text_file
+from zthreads.comm.fileoperation import write2csv,write_datas_2csv,read_text_file
 
 from multiprocessing import Pool
 import logging
@@ -18,7 +18,7 @@ from logging.handlers import TimedRotatingFileHandler
 import datetime
 import urllib3
 #requests.packages.urllib3.disable_warnings()
-from requests.packages.urllib3.exceptions import SubjectAltNameWarning
+from requests.packages.urllib3.exceptions import SubjectAltNameWarning,InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -29,6 +29,13 @@ if sys.version_info.major==3:
 else:
     from urllib import quote as quote
 
+def encode_url(url):
+    """
+        处理包含中文字符串/空格的URL编码问题
+    :param url:
+    :return:
+    """
+    return quote(url, safe=string.printable).replace(' ', '%20')
 
 def get_urls_from_web(self, base_url):#,logger=None):
     """
@@ -55,7 +62,7 @@ def get_urls_from_web(self, base_url):#,logger=None):
             print('get_urls_from_web: {0}-{1}'.format(base_url,e))
     return []
 
-def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www='www.',encoding='utf-8',protocol='http'):
+def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www='www.',encoding='utf-8',default_protocol='http'):
     """
         用于url分类测试，测试文件中存放大量的url地址
     :param from_file: str 
@@ -63,11 +70,12 @@ def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www=
     :param spliter: str
     :param pre_www: str
     :param encoding: str
-    :param protocol: str
+    :param default_protocol: str
     :return: list， URL_list（Generator）
     """
-    raw_urls = read_text_file(file=from_file,encoding='utf-8',spliter=',',column=url_index,has_header=True,data_only=True)
+    raw_urls,header = read_text_file(file=from_file,encoding='utf-8',spliter=',',column=url_index,has_header=True,data_only=True)
     urls = []
+    print('raw_urls=',raw_urls)
     for url in raw_urls:
         #guess the protocol header
         protocol_header = url.lower()
@@ -81,12 +89,12 @@ def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www=
                     url = pre_www + url
             else:
                 pass
-            if protocol:
+            if default_protocol:
                 pass
             else:
-                protocol = 'http'
-            url = '{0}://'.format(protocol) + url
-        urls.append(url)
+                default_protocol = 'http'
+            url = '{0}://'.format(default_protocol) + url
+        urls.append(encode_url(url))
     return urls   
 
 def urls_exception(self,urls,except_url_file='',url_index=1,spliter=',',pre_www='www.'):
@@ -167,6 +175,7 @@ class Httprequests:
             url = self.url
         try:
             r = requests.get(url,params = params,headers = headers,files=files)  #**kwargs
+            #r.encoding = encoding
             return r.status_code,r.json()    # 返回响应码，响应内容
         except Exception as e:
             if self.logger: self.logger.error("Request get exception: {0}".format(e))
@@ -185,6 +194,7 @@ class Httprequests:
             url = self.url
         try:
             r = requests.post(url, data=data, headers=headers,files=files) #**kwargs
+            #r.encoding = encoding
             return r.status_code,r.json()    # 返回响应码，响应内容
         except Exception as e:
             if self.logger: self.logger.error("Request post exception: {0}".format(e))
@@ -204,13 +214,14 @@ class Httprequests:
         try:
             data = json.dumps(data).encode('utf-8')  # python数据类型转化为json数据类型
             r = requests.post(url, data=data, headers=headers)
+            #r.encoding = encoding
             return r.status_code,r.json()     # 返回响应码，响应内容
         except Exception as e:
             if self.logger: self.logger.error("Request post_json exception: {0}".format(e))
             return -1,{}
 
 
-    def url_request(self, url, block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=(30,60)):
+    def url_request(self,url=None, block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=(30,60)):
         """
         下载文件，分析是否被SWG阻断
         :param url:
@@ -224,8 +235,10 @@ class Httprequests:
         #block_info = '访问的URL中含有安全风险'
         pid,ppid = os.getpid(),os.getppid()
         #if True:
+        if url==None:
+            url = self.url
         try:
-            r = requests.get(encode_url(url), headers=self.headers,proxies=self.proxy,timeout=timeout,verify=verify)
+            r = requests.get(self.encode_url(url), headers=self.headers,proxies=self.proxy,timeout=timeout,verify=verify)
             block_type = ''
             if r.status_code==403:
                 r.encoding = encoding
@@ -294,7 +307,8 @@ class Httprequests:
             logger.error('Invalid request-url type: {0}, url: {1}'.format(type(url),url))
         return
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
+    """
     parser = argparse.ArgumentParser(description='该Python3脚本用于ASWG做URL分类测试和病毒测试。\n 1、URL测试使用方法:\n python aswgRequest.py -t url -f ulrs.txt -p 172.18.230.23:8080 -o urls_result.csv \n 2、病毒测试：  python aswgRequest.py -t virus -u http://www.sogaoqing.com/upload/VirusSamples/ -p 172.18.230.23:8080 -o virus_result.csv') 
     parser.add_argument('-t','--type', type=str, default='url',help='默认为url分类测试，从文件读取url地址；当设置为virus时，将模拟从某个web服务器特定目录下载所有文件。')
     parser.add_argument('-p','--proxy', type=str, default = '',help='默认不适用aswp代理，需指定代理时，<proxy_IP>:<proxy_port> 例如：72.18.230.23:8080') 
@@ -409,6 +423,7 @@ if __name__ == '__main__':
     logger.info('测试结果位于：{} '.format(result_file ))
     sys.exit()
     #需要踏平的坑
+    """
     """设置 ulimit -n 10240--否则大规模 读写文件/请求会出现  Errno 99 错误"""
     """ASWG URL测试使用方法"""
     #python aswgRequest.py -t url -f urls.txt -p 172.18.230.23:8080 -o urls_result.csv -c 512 -l aswgRequest

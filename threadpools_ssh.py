@@ -119,9 +119,9 @@ def adding_ssh_queue(pool,action,callback,ssh_data_file='ssh_iplist.txt',encodin
             port = 22
         if host and username and password:
             if pool.logger:
-                pool.put(ssh_fun, (i,host,username,password,port,pool.logger,), callback)
+                pool.put(action, (i,host,username,password,port,pool.logger,), callback)
             else:
-                pool.put(ssh_fun, (i,host,username,password,port,), callback)
+                pool.put(action, (i,host,username,password,port,), callback)
         else:
             if pool.logger:
                 logger.error("One of host={0}, username={1} or password={2} port={3} is invalid".format(host,username,password,port))
