@@ -123,6 +123,7 @@ def read_text_file(file='./raw/users.txt',encoding='utf-8',spliter=',',column=No
     :return: list data with data and header
     """
     datas = []
+    header = []
     with open(file, 'r',encoding=encoding) as f:
         i = 0
         for row in f: # way of small memory 
@@ -138,7 +139,6 @@ def read_text_file(file='./raw/users.txt',encoding='utf-8',spliter=',',column=No
                         print('read_text_file-invalid column={0} for line-{i}'.format(column,i))
             else:
                 pass
-    header = []
     if has_header and datas:
         if column==None:
             if data_only:

@@ -75,7 +75,7 @@ def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www=
     """
     raw_urls,header = read_text_file(file=from_file,encoding='utf-8',spliter=',',column=url_index,has_header=True,data_only=True)
     urls = []
-    print('raw_urls=',raw_urls)
+    #print('raw_urls=',raw_urls)
     for url in raw_urls:
         #guess the protocol header
         protocol_header = url.lower()
@@ -221,7 +221,7 @@ class Httprequests:
             return -1,{}
 
 
-    def url_request(self,url=None, block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=(30,60)):
+    def url_request(self,url=None, block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=(30,60),thread=''):
         """
         下载文件，分析是否被SWG阻断
         :param url:
@@ -253,10 +253,10 @@ class Httprequests:
             else:#403，200 以外的待定
                 block_type = "unknown"
             if self.logger:
-                self.logger.info('request-url: {0}, http_code: {1}, action: {2}, pid-{3}, ppid-{4}'.format(url, r.status_code,block_type,pid,ppid))
+                self.logger.info('request-url: {0}, http_code: {1}, action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type, pid,ppid,thread))
             else:
-                print('request-url: {0}, http_code: {1}, action: {2}, pid-{3}, ppid-{4}'.format(url, r.status_code,block_type,pid,ppid))
-            return [url, url.split('/')[-1], r.status_code, block_type,pid,ppid]
+                print('request-url: {0}, http_code: {1}, action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type,pid,ppid,thread))
+            return [url, url.split('/')[-1], r.status_code, block_type, pid,ppid,thread]
         #except:
         #else:
         except Exception as e:
@@ -271,7 +271,7 @@ class Httprequests:
                     pass
                 url_request(url,proxy,block_info,encoding,retry_once=False)
             if self.logger: self.logger.error('request-url-exception: {0}, ERROR: {1} '.format(url, e))
-            return [url, url.split('/')[-1], 0, e,pid,ppid]
+            return [url, url.split('/')[-1], 0, e,pid,ppid,thread]
     
     def request_results(self,url,file='result.csv',type='url'):#,logger=None):
         """
