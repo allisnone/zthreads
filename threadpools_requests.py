@@ -86,7 +86,7 @@ def action(thread_name,arg,url,logger=None,headers=None,proxy_host='None',proxy_
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:73.0) Gecko/20100101 Firefox/73.0',
         'Connection': 'close',#'keep-alive'  #close' 原生http无状态
         'Host': url.replace('http://','').replace('https://','')
-        #'Referer': url
+        #'Referer': url,
     }
     #print(headers)
     result = aswg_url_request(url,headers=headers,proxy_host=proxy_host,proxy_port=proxy_port,proxy_username=proxy_username,proxy_password=proxy_password,logger=logger,thread=thread_name)
