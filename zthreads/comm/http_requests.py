@@ -62,7 +62,7 @@ def get_urls_from_web(self, base_url):#,logger=None):
             print('get_urls_from_web: {0}-{1}'.format(base_url,e))
     return []
 
-def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www='www.',encoding='utf-8',default_protocol='http'):
+def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www='www.',encoding='utf-8',default_protocol='http',replace_space=True):
     """
         用于url分类测试，测试文件中存放大量的url地址
     :param from_file: str 
@@ -75,9 +75,11 @@ def get_urls_from_file(from_file='url16000.txt',url_index=0,spliter=',',pre_www=
     """
     raw_urls,header = read_text_file(file=from_file,encoding='utf-8',spliter=',',column=url_index,has_header=True,data_only=True)
     urls = []
-    #print('raw_urls=',raw_urls)
+    #print('raw_urls1=',raw_urls)
     for url in raw_urls:
         #guess the protocol header
+        if replace_space:#后续考虑仅判断域名部分
+            url = url.replace(' ','')
         protocol_header = url.lower()
         if "http://" in protocol_header or "https://" in protocol_header or "ftp://" in protocol_header:
             pass 

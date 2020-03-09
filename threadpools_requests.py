@@ -36,7 +36,7 @@ def aswg_url_request(url,headers=None,proxy_host='None',proxy_port=8080,proxy_us
         req = Httprequests(url,headers=headers,logger=logger)
         #req.set_proxy(proxy_host=proxy_host,prox_port=prox_port,proxy_username=proxy_username,proxy_password=proxy_password)
         #req.set_proxy(proxy_host=proxy_host,prox_port='8080',proxy_username='se1',proxy_password='Firewall1')
-        result = req.url_request(block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=(15,30),thread=thread)
+        result = req.url_request(block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=(30,60),thread=thread)
         return result
     except Exception as e:
         return []
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     # 创建一个最多包含5个线程的线程池
     print("-" * 50)
     print('Start url thread pool test...')
-    pool_num = 1000
+    pool_num = 32
     curr_path = 'C:\\Users\\zhangguoxin\\git\\mytrader\\mytrader'
     #logfile=os.path.join(curr_path,'./ztrader/logs/thread.log')
     logfile = 'thread.log'
