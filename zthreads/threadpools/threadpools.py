@@ -4,6 +4,8 @@
 """
 一个基于thread和queue的线程池，以任务为队列元素，动态创建线程，重复利用线程，
 通过close和terminate方法关闭线程池。 python2.7 or python3
+
+python3.2开启可以使用系统自带的threadpool 的标准库： concurrent.futures.ThreadPoolExecutor
 """
 #import queue
 import threading
