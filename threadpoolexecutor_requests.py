@@ -20,18 +20,21 @@ from concurrent.futures import ThreadPoolExecutor,as_completed,wait,ALL_COMPLETE
 def aswg_url_request(url_data):
     """
     根据需要进行的回调函数，默认不执行。
-    :param host: str, ssh host IP
-    :param user: str, ssh login username
-    :param password: str, ssh login username
-    :param logger: logger
-    :param result_type: str, type of the result
-    :return: result, dict or list
+    :param url_data: dict type
+    :return: result, dict 
     """
-    #result = [host,username,password,port]
     try:
-        req = Httprequests(url_data['url'],headers=url_data['headers'],logger=url_data['logger'])
-        #req.set_proxy(proxy_host=proxy_host,prox_port=prox_port,proxy_username=proxy_username,proxy_password=proxy_password)
-        #req.set_proxy(proxy_host=proxy_host,prox_port='8080',proxy_username='se1',proxy_password='Firewall1')
+        #print('url_data_porxy=',url_data['proxy'])
+        #proxy={'https': 'http://ts2:Firewall1@172.17.33.23:8080', 'http': 'http://ts2:Firewall1@172.17.33.23:8080'}
+        proxy = None
+        try:
+            proxy = url_data['proxy']
+        except Exception as e:
+            print('proxy_exception: {0}'.format(e))
+        req = Httprequests(url_data['url'],headers=url_data['headers'],logger=url_data['logger'],proxy=proxy)
+        if proxy==None:
+            req.set_proxy(proxy_host=url_data['proxy_host'],proxy_port=url_data['proxy_port'],proxy_username=url_data['proxy_username'],proxy_password=url_data['proxy_password'])
+        #req.set_proxy(proxy_host=proxy_host,proxy_port='8080',proxy_username='se1',proxy_password='Firewall1')
         result = req.url_request(block_info='访问的URL中含有安全风险',encoding='utf-8',verify=False,retry_once=False,timeout=url_data['timeout'],thread=url_data['thread'])
         return {'status':True,'result':result,'result_file': url_data['result_file']}
     except Exception as e:
@@ -47,6 +50,7 @@ def callback(future):
     """
     data = future.result()
     status = data['status']
+    print(data['result_file'],data['result'])
     if status:
         if data['result']:
             # doing something here
@@ -107,9 +111,9 @@ def adding_url_request_queue(pool,action,callback,urls=[],url_file='urls.txt',ur
 if __name__ == '__main__':
     #sftp_upload_file(thread_name='thread-1',seq=1,host='172.17.33.23',port=22,username='root',password='',private_key_file='/root/.ssh/id_rsa')
     # 创建一个最多包含5个线程的线程池
-    print("-" * 50)
-    print('Start url thread pool test...')
     pool_num = 32
+    print("-" * 50)
+    print('Start ThreadPoolExecutor test for ASWG Proxy, pool_num={}...'.format(pool_num))
     curr_path = 'C:\\Users\\zhangguoxin\\git\\mytrader\\mytrader'
     #logfile=os.path.join(curr_path,'./ztrader/logs/thread.log')
     logname = 'aswgRequests'
@@ -120,16 +124,21 @@ if __name__ == '__main__':
     columns = ['url','domain','status_code','time(s)','result','pid','ppid','theadname']
     write2csv(data=columns,file='result.csv',encoding='utf-8',logger=logger,clear=True)
     headers = None
-    proxy_host= None
-    proxy_port=8080
-    proxy_username=None
-    proxy_password=None
+    proxy_host = '172.17.33.23'
+    proxy_port = 8080
+    proxy_username = 'ts2'
+    proxy_password = 'Firewall1'
+    proxy_url = 'http://ts2:Firewall1@172.17.33.23:8080'
+    proxy={'https': proxy_url, 'http': proxy_url}
+    logger.info('Set global request proxy={0}'.format(proxy))
     timeout = (30,60)
     url_file = 'urls.txt'
     url_column = 0
-    url_file = 'rank_1000.txt'
-    url_column = 1
+    #url_file = 'rank_1000.txt'
+    #url_column = 1
+    test_url = 'https://www.baidu.com'
     urls = get_urls_from_file(from_file=url_file,url_index=url_column,spliter=',',pre_www='www.',encoding='utf-8',default_protocol='http')
+    urls.insert(0,test_url)
     with ThreadPoolExecutor(pool_num) as executor:
         #adding_url_request_queue(executor,action,callback,urls=urls, url_file='',url_column=url_column,encoding='utf-8')
         # 等待一定时间，让线程执行任务
@@ -147,6 +156,7 @@ if __name__ == '__main__':
             'logger': logger,
             'result_file': 'aswgrequest_result.csv',
             'headers': headers,
+            'proxy': proxy,
             'proxy_host': proxy_host,
             'proxy_port' : proxy_port,
             'proxy_username': proxy_username,
@@ -154,11 +164,16 @@ if __name__ == '__main__':
             'timeout': timeout,
             'thread': 'thread_{0}'.format(i)
             }
-            if not url:
-                continue
+            if i==0:#获取basic认证的认证缓存
+                aswg_url_request(url_data)
+                logger.info('Request test proxy URL for Auth buffer: {0}, and will wait 10s...'.format(test_url))
+                time.sleep(10)  
             else:
-                task = executor.submit(aswg_url_request,(url_data))#.add_done_callback(callback)
-                task.add_done_callback(callback)
+                if not url:
+                    continue
+                else:
+                    task = executor.submit(aswg_url_request,(url_data))#.add_done_callback(callback)
+                    task.add_done_callback(callback)
             i = i + 1
     time.sleep(3)
     print("-" * 50)

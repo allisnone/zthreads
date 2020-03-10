@@ -108,29 +108,27 @@ def urls_exception(self,urls,except_url_file='',url_index=1,spliter=',',pre_www=
 
 
 class Httprequests:
-    def __init__(self,url,headers=None,proxy_host=None,prox_port=8080,proxy_username=None,proxy_password=None,logger=None):
-        self.set_proxy(proxy_host, prox_port, proxy_username, proxy_password)
-        #headers = {
-        #        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
-        #}
+    def __init__(self,url,headers=None,proxy=None,proxy_host=None,proxy_port=8080,proxy_username=None,proxy_password=None,logger=None):
         self.headers = headers
         self.logger = logger
         self.url = self.encode_url(url)
-        self.set_proxy(proxy_host, prox_port, proxy_username, proxy_password)
+        if proxy:
+            self.proxy = proxy
+        else:
+            self.set_proxy(proxy_host, proxy_port, proxy_username, proxy_password)
         
-        
-    def set_proxy(self, proxy_host, prox_port=8080, proxy_username=None, proxy_password=None):
+    def set_proxy(self, proxy_host=None, proxy_port=8080, proxy_username=None, proxy_password=None):
         """
         根据URL设置使用HTTP或者HTTPS的代理
         :param proxy_host: str type , host or ip
-        :param prox_port: str type, port
+        :param proxy_port: str type, port
         :param proxy_username: str type, user
         :param proxy_password: str type,  password
         :return None, set proxy like {'http': 'http://172.18.230.23:8080', 'https':'https://172.18.230.23:8080'}
         """
         proxy_str = '' #172.18.230.23:8080
-        if proxy_host and prox_port:
-            proxy_str = '{0}:{1}'.format(proxy_host,prox_port)
+        if proxy_host and proxy_port:
+            proxy_str = '{0}:{1}'.format(proxy_host,proxy_port)
         if not proxy_str:
             self.proxy = {}
             return 
@@ -144,7 +142,9 @@ class Httprequests:
             proxy_url = '{0}@{1}'.format(proxy_user, proxy_str)
         else:
             proxy_url = proxy_str
-        self.proxy = {'http': 'http://' + proxy_url, 'https':'http://' + proxy_url}
+        if proxy_url:
+            proxy_url = 'http://{0}'.format(proxy_url)
+        self.proxy = {'http': proxy_url, 'https': proxy_url}
         return  
     
     def set_header(self, headers):
@@ -257,6 +257,7 @@ class Httprequests:
             else:#403，200 以外的待定
                 block_type = "unknown"
             if self.logger:
+                #self.logger.info('proxy={0}'.format(self.proxy))
                 self.logger.info('request-url: {0}, status_code: {1},delta_time(s): {6} ,action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type, pid,ppid,thread,delta_t))
             else:
                 print('request-url: {0}, status_code: {1}, delta_time(s): {6}, action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type,pid,ppid,thread,delta_t))

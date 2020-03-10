@@ -26,7 +26,7 @@ except (IOError, ImportError):
 
 setup(
     name='zthreads',
-    version='0.90',
+    version='1.00',
     description='A Python Interface to TDX protocol',
     long_description=long_description,
     author='allisnone',
