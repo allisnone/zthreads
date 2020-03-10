@@ -8,7 +8,7 @@ import argparse
 import re
 import os
 import csv
-import string,sys
+import string,sys,time
 import requests
 from zthreads.comm.fileoperation import write2csv,write_datas_2csv,read_text_file
 
@@ -237,10 +237,12 @@ class Httprequests:
         #block_info = '访问的URL中含有安全风险'
         pid,ppid = os.getpid(),os.getppid()
         #if True:
+        t0 = time.time()
         if url==None:
             url = self.url
         try:
             r = requests.get(self.encode_url(url), headers=self.headers,proxies=self.proxy,timeout=timeout,verify=verify)
+            delta_t = round(time.time() - t0,4)
             block_type = ''
             if r.status_code==403:
                 r.encoding = encoding
@@ -255,10 +257,10 @@ class Httprequests:
             else:#403，200 以外的待定
                 block_type = "unknown"
             if self.logger:
-                self.logger.info('request-url: {0}, http_code: {1}, action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type, pid,ppid,thread))
+                self.logger.info('request-url: {0}, status_code: {1},delta_time(s): {6} ,action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type, pid,ppid,thread,delta_t))
             else:
-                print('request-url: {0}, http_code: {1}, action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type,pid,ppid,thread))
-            return [url, url.split('/')[-1], r.status_code, block_type, pid,ppid,thread]
+                print('request-url: {0}, status_code: {1}, delta_time(s): {6}, action: {2}, pid-{3}, ppid-{4}, thread-{5}'.format(url, r.status_code,block_type,pid,ppid,thread,delta_t))
+            return [url, url.split('/')[-1], r.status_code, delta_t, block_type, pid,ppid,thread]
         #except:
         #else:
         except Exception as e:
@@ -272,8 +274,9 @@ class Httprequests:
                 else:
                     pass
                 url_request(url,proxy,block_info,encoding,retry_once=False)
-            if self.logger: self.logger.error('request-url-exception: {0}, ERROR: {1} '.format(url, e))
-            return [url, url.split('/')[-1], 0, e,pid,ppid,thread]
+            delta_t = round(time.time() - t0,4)
+            if self.logger: self.logger.error('request-url-exception: {0}, ERROR: {1}, delta_time(s): {2}'.format(url, e,delta_t))
+            return [url, url.split('/')[-1], 0, delta_t,'exception',pid,ppid,thread]
     
     def request_results(self,url,file='result.csv',type='url'):#,logger=None):
         """
